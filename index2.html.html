@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WAEC Practice Test</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#1c2333;--muted:#5b647a;--accent:#1f6feb;--ok:#1a7f37;--bad:#c62828;--line:#dde1ea}
+@media (prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1b2030;--text:#e8ebf4;--muted:#9aa3b8;--accent:#5b9cff;--ok:#4cc26b;--bad:#ff7b7b;--line:#2d3550}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+h1{font-size:1.4rem;margin:.2em 0}
+input,select,button{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);width:100%;margin:6px 0}
+button{background:var(--accent);color:#fff;border:0;cursor:pointer;font-weight:600}
+label.opt{display:block;padding:9px 10px;border:1px solid var(--line);border-radius:8px;margin:6px 0;cursor:pointer}
+label.opt input{width:auto;margin-right:8px}
+.ok{border-color:var(--ok);color:var(--ok)}.bad{border-color:var(--bad);color:var(--bad)}
+#bar{position:sticky;top:0;background:var(--bg);padding:8px 0;display:flex;justify-content:space-between;font-weight:700;z-index:2}
+.hide{display:none}.muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="start" class="card">
+  <h1>WAEC Practice Test</h1>
+  <p class="muted">Enter your name, choose a subject and start. You have 20 minutes.</p>
+  <input id="name" placeholder="Your full name">
+  <select id="subject"></select>
+  <button onclick="startTest()">Start Test</button>
+</div>
+
+<div id="test" class="hide">
+  <div id="bar"><span id="who"></span><span id="timer"></span></div>
+  <div id="qs"></div>
+  <button onclick="finish()">Submit Test</button>
+</div>
+
+<div id="result" class="card hide"></div>
+</div>
+
+<script>
+// ---- EDIT HERE: add or change questions. Format: [question, [options], index of correct option (0 = first)]
+const BANK = {
+"Mathematics":[
+["Simplify 10 2/5 − 6 2/3 + 3",["6 11/15","7 1/15","5 4/15","6 4/15"],0],
+["Evaluate 23₅ + 32₅, leaving your answer in base five.",["100₅","110₅","111₅","120₅"],1],
+["Solve for x: 2^(√(2x + 1)) = 32",["x = 6","x = 12","x = 13","x = 24"],1],
+["Simplify √[ (8² × 4ⁿ⁺¹) ÷ (2²ⁿ × 16) ]",["2","4","8","16"],1],
+["Using logarithms, evaluate ∜(85.3 × 7.28) correct to 3 significant figures.",["0.499","2.49","4.99","49.9"],2],
+["If log 5.957 = 0.7750, find log ∛(0.0005957).",["1̄.5917","1̄.9250","2̄.9250","2̄.5917"],2],
+["Simplify √12 (√48 − √3)",["6","12","18","36"],2],
+["Solve the simultaneous equations: 4x + 6y = 20 and 4x + 2y = 4",["x = 1, y = 4","x = −1, y = 4","x = 4, y = −1","x = −4, y = 1"],1],
+["Find the range of values of x for which −9 ≤ 2x/3 − 7 < 5",["−3 ≤ x < 18","−3 < x ≤ 18","3 ≤ x < 18","−18 ≤ x < 3"],0],
+["The 5th term of an A.P. is 17 and the 9th term is 33. Find the first term (a) and the common difference (d).",["a = 4, d = 1","a = 1, d = 4","a = 2, d = 5","a = 5, d = 3"],1],
+["If k, 2k + 1 and 5k − 2 are consecutive terms of an A.P., find k.",["k = 1","k = 2","k = 3","k = 4"],1],
+["Using the method of completing the square, the roots of 2x² + 3x − 2 = 0 are",["x = 1/2 or x = −2","x = −1/2 or x = 2","x = 1/2 or x = 2","x = −1/2 or x = −2"],0],
+["Make u the subject of the formula E = m(v² − u²) ÷ 2g",["u = √(v² − 2gE/m)","u = √(v² + 2gE/m)","u = √(2gE/m − v²)","u = (v² − 2gE)/m"],0],
+["Find the shortest distance between the points P(4, 3) and Q(2, −1).",["2√5","√12","4√5","√8"],0],
+["Find the gradient of a line perpendicular to the line joining P(4, 3) and Q(2, −1).",["−1/2","1/2","2","−2"],0],
+["If U = {1, 2, 3, 4, 5, 6}, Y = {1, 2, 3, 4} and Z = {1, 3}, find Y′ ∪ Z.",["{1, 3, 5, 6}","{5, 6}","{1, 2, 3, 4}","{1, 3}"],0],
+["Twenty students scored 0, 1, 2, 3 and 4 marks with frequencies 4, 2, 5, 6 and 3 respectively. If one student is picked at random, what is the probability that the student scored at least 2 marks?",["7/10","11/20","3/10","9/20"],0],
+["Each exterior angle of a regular polygon is 30°. Calculate the sum of its interior angles.",["1440°","1620°","1800°","2160°"],2],
+["Given that cos x = 12/13, find (1 − tan x) ÷ tan x.",["7/5","5/7","7/12","12/5"],0],
+["A ladder 6 m long leans against a vertical wall at an angle of 53° to the horizontal. How high up the wall does it reach? (sin 53° = 0.7986, cos 53° = 0.6018)",["3.61 m","4.79 m","6.00 m","7.51 m"],1]],
+"English":[
+["Choose the word nearest in meaning to “benevolent”",["kind","cruel","lazy","proud"],0],
+["Choose the word opposite in meaning to “scarce”",["rare","little","abundant","few"],2],
+["She ___ to school every day.",["go","goes","going","gone"],1],
+["The plural of “criterion” is",["criterions","criteria","criterias","criterion"],1],
+["“He is as cunning as a fox” is an example of",["metaphor","simile","personification","hyperbole"],1]],
+"Biology":[
+["The powerhouse of the cell is the",["nucleus","ribosome","mitochondrion","vacuole"],2],
+["The process by which green plants make food is",["respiration","photosynthesis","digestion","excretion"],1],
+["Which blood group is the universal donor?",["A","B","AB","O"],3],
+["The unit of heredity is the",["gene","cell","tissue","enzyme"],0],
+["Which organ produces insulin?",["liver","kidney","pancreas","stomach"],2]],
+"Chemistry":[
+["The atomic number of carbon is",["4","6","8","12"],1],
+["The pH of a neutral solution is",["0","7","10","14"],1],
+["The chemical formula of common salt is",["NaCl","KCl","CaCl₂","NaOH"],0],
+["The gas liberated when zinc reacts with dilute HCl is",["oxygen","chlorine","hydrogen","carbon dioxide"],2],
+["Which of these is a noble gas?",["Nitrogen","Argon","Oxygen","Chlorine"],1]],
+"Economics":[
+["Scarcity in economics means",["no resources exist","resources are limited relative to wants","goods are cheap","goods are free"],1],
+["The law of demand states that as price rises, quantity demanded",["rises","falls","stays constant","doubles"],1],
+["The apex bank in Nigeria is the",["First Bank","UBA","Central Bank of Nigeria","Zenith Bank"],2],
+["Opportunity cost is",["money spent","the next best alternative forgone","total cost","profit made"],1],
+["Which of these is a factor of production?",["Land","Tax","Price","Income"],0]],
+"Physics":[
+["The SI unit of force is the",["joule","newton","watt","pascal"],1],
+["Speed is equal to",["distance × time","distance ÷ time","time ÷ distance","mass ÷ time"],1],
+["Which of these is a vector quantity?",["speed","mass","velocity","time"],2],
+["The acceleration due to gravity is approximately",["10 m/s²","100 m/s²","1 m/s²","0.1 m/s²"],0],
+["Atmospheric pressure is measured with a",["thermometer","barometer","ammeter","hydrometer"],1]],
+"Commerce":[
+["A trader who buys in bulk and sells to retailers is a",["wholesaler","consumer","hawker","manufacturer"],0],
+["A document sent by a seller showing goods supplied and amount due is an",["invoice","receipt","cheque","voucher"],0],
+["The insurance principle that restores a person to the position before a loss is",["subrogation","indemnity","contribution","proximate cause"],1],
+["Which of these is an aid to trade?",["Farming","Mining","Advertising","Fishing"],2],
+["A cheque crossed “Account Payee” must be paid",["in cash","into the payee’s bank account","to any bearer","to the drawer"],1]],
+"Accounting":[
+["The accounting equation is",["Assets = Capital + Liabilities","Assets = Capital − Liabilities","Capital = Assets + Liabilities","Liabilities = Assets + Capital"],0],
+["Which of these is a current asset?",["Land","Building","Debtors","Motor vehicle"],2],
+["Gross profit is",["Sales − Expenses","Sales − Cost of goods sold","Purchases − Sales","Capital − Drawings"],1],
+["Cash transactions are first recorded in the",["ledger","cash book","trial balance","journal proper"],1],
+["Depreciation is the allocation of the cost of a fixed asset over its",["useful life","purchase date","sale price","tax period"],0]]
+};
+const MINUTES = 20;
+// -----------------------------------------------------------------
+
+const $ = id => document.getElementById(id);
+let current = [], timerId, secs, student, subj, done = false;
+$("subject").innerHTML = Object.keys(BANK).map(s => `<option>${s}</option>`).join("");
+
+function startTest(){
+  student = $("name").value.trim();
+  if(!student){ alert("Please enter your name."); return; }
+  subj = $("subject").value;
+  current = BANK[subj].slice(0,20);
+  done = false;
+  $("start").classList.add("hide");
+  $("test").classList.remove("hide");
+  $("who").textContent = student + " · " + subj;
+  $("qs").innerHTML = current.map((q,i) =>
+    `<div class="card"><b>${i+1}. ${q[0]}</b>` +
+    q[1].map((o,j) => `<label class="opt"><input type="radio" name="q${i}" value="${j}">${"ABCD"[j]}. ${o}</label>`).join("") +
+    `</div>`).join("");
+  secs = MINUTES * 60;
+  tick();
+  timerId = setInterval(tick, 1000);
+}
+
+function tick(){
+  const m = String(Math.floor(secs/60)).padStart(2,"0"), s = String(secs%60).padStart(2,"0");
+  $("timer").textContent = "⏱ " + m + ":" + s;
+  if(secs-- <= 0) finish(true);
+}
+
+function finish(auto){
+  if(done) return;
+  if(!auto && !confirm("Submit your test now?")) return;
+  done = true;
+  clearInterval(timerId);
+  let score = 0, review = "";
+  current.forEach((q,i) => {
+    const sel = document.querySelector(`input[name="q${i}"]:checked`);
+    const pick = sel ? +sel.value : -1;
+    const right = pick === q[2];
+    if(right) score++;
+    review += `<div class="opt ${right?"ok":"bad"}"><b>${i+1}. ${q[0]}</b><br>` +
+      `Your answer: ${pick<0?"No answer":q[1][pick]}` +
+      (right ? " ✓" : `<br>Correct answer: ${q[1][q[2]]}`) + `</div>`;
+  });
+  const pct = Math.round(score / current.length * 100);
+  $("test").classList.add("hide");
+  $("result").classList.remove("hide");
+  $("result").innerHTML = `<h1>${student}, you scored ${score}/${current.length} (${pct}%)</h1>
+    <p class="muted">${subj}</p>${review}
+    <button onclick="location.reload()">Take another test</button>`;
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
