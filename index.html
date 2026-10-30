@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WAEC Practice Test</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#1c2333;--muted:#5b647a;--accent:#1f6feb;--ok:#1a7f37;--bad:#c62828;--line:#dde1ea}
+@media (prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1b2030;--text:#e8ebf4;--muted:#9aa3b8;--accent:#5b9cff;--ok:#4cc26b;--bad:#ff7b7b;--line:#2d3550}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+h1{font-size:1.4rem;margin:.2em 0}
+input,select,button{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--text);width:100%;margin:6px 0}
+button{background:var(--accent);color:#fff;border:0;cursor:pointer;font-weight:600}
+label.opt{display:block;padding:9px 10px;border:1px solid var(--line);border-radius:8px;margin:6px 0;cursor:pointer}
+label.opt input{width:auto;margin-right:8px}
+.ok{border-color:var(--ok);color:var(--ok)}.bad{border-color:var(--bad);color:var(--bad)}
+#bar{position:sticky;top:0;background:var(--bg);padding:8px 0;display:flex;justify-content:space-between;font-weight:700;z-index:2}
+.hide{display:none}.muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="start" class="card">
+  <h1>WAEC Practice Test</h1>
+  <p class="muted">Enter your name, choose a subject and start. You have 20 minutes.</p>
+  <input id="name" placeholder="Your full name">
+  <select id="subject"></select>
+  <button onclick="startTest()">Start Test</button>
+</div>
+
+<div id="test" class="hide">
+  <div id="bar"><span id="who"></span><span id="timer"></span></div>
+  <div id="qs"></div>
+  <button onclick="finish()">Submit Test</button>
+</div>
+
+<div id="result" class="card hide"></div>
+</div>
+
+<script>
+// ---- EDIT HERE: add or change questions. Format: [question, [options], index of correct option (0 = first)]
+const BANK = {
+"Mathematics":[
+["Simplify 3/4 + 2/5",["5/9","23/20","6/20","11/20"],1],
+["Solve 2x + 5 = 17",["4","5","6","7"],2],
+["Find x if 3^x = 81",["3","4","5","27"],1],
+["Area of a circle of radius 7 cm (π = 22/7)",["44 cm²","154 cm²","49 cm²","22 cm²"],1],
+["Factorize x² − 9",["(x − 9)(x + 1)","(x − 3)(x + 3)","(x − 3)²","(x + 3)²"],1]],
+"English":[
+["Choose the word nearest in meaning to “benevolent”",["kind","cruel","lazy","proud"],0],
+["Choose the word opposite in meaning to “scarce”",["rare","little","abundant","few"],2],
+["She ___ to school every day.",["go","goes","going","gone"],1],
+["The plural of “criterion” is",["criterions","criteria","criterias","criterion"],1],
+["“He is as cunning as a fox” is an example of",["metaphor","simile","personification","hyperbole"],1]],
+"Biology":[
+["The powerhouse of the cell is the",["nucleus","ribosome","mitochondrion","vacuole"],2],
+["The process by which green plants make food is",["respiration","photosynthesis","digestion","excretion"],1],
+["Which blood group is the universal donor?",["A","B","AB","O"],3],
+["The unit of heredity is the",["gene","cell","tissue","enzyme"],0],
+["Which organ produces insulin?",["liver","kidney","pancreas","stomach"],2]],
+"Chemistry":[
+["The atomic number of carbon is",["4","6","8","12"],1],
+["The pH of a neutral solution is",["0","7","10","14"],1],
+["The chemical formula of common salt is",["NaCl","KCl","CaCl₂","NaOH"],0],
+["The gas liberated when zinc reacts with dilute HCl is",["oxygen","chlorine","hydrogen","carbon dioxide"],2],
+["Which of these is a noble gas?",["Nitrogen","Argon","Oxygen","Chlorine"],1]],
+"Economics":[
+["Scarcity in economics means",["no resources exist","resources are limited relative to wants","goods are cheap","goods are free"],1],
+["The law of demand states that as price rises, quantity demanded",["rises","falls","stays constant","doubles"],1],
+["The apex bank in Nigeria is the",["First Bank","UBA","Central Bank of Nigeria","Zenith Bank"],2],
+["Opportunity cost is",["money spent","the next best alternative forgone","total cost","profit made"],1],
+["Which of these is a factor of production?",["Land","Tax","Price","Income"],0]],
+"Physics":[
+["The SI unit of force is the",["joule","newton","watt","pascal"],1],
+["Speed is equal to",["distance × time","distance ÷ time","time ÷ distance","mass ÷ time"],1],
+["Which of these is a vector quantity?",["speed","mass","velocity","time"],2],
+["The acceleration due to gravity is approximately",["10 m/s²","100 m/s²","1 m/s²","0.1 m/s²"],0],
+["Atmospheric pressure is measured with a",["thermometer","barometer","ammeter","hydrometer"],1]],
+"Commerce":[
+["A trader who buys in bulk and sells to retailers is a",["wholesaler","consumer","hawker","manufacturer"],0],
+["A document sent by a seller showing goods supplied and amount due is an",["invoice","receipt","cheque","voucher"],0],
+["The insurance principle that restores a person to the position before a loss is",["subrogation","indemnity","contribution","proximate cause"],1],
+["Which of these is an aid to trade?",["Farming","Mining","Advertising","Fishing"],2],
+["A cheque crossed “Account Payee” must be paid",["in cash","into the payee’s bank account","to any bearer","to the drawer"],1]],
+"Accounting":[
+["The accounting equation is",["Assets = Capital + Liabilities","Assets = Capital − Liabilities","Capital = Assets + Liabilities","Liabilities = Assets + Capital"],0],
+["Which of these is a current asset?",["Land","Building","Debtors","Motor vehicle"],2],
+["Gross profit is",["Sales − Expenses","Sales − Cost of goods sold","Purchases − Sales","Capital − Drawings"],1],
+["Cash transactions are first recorded in the",["ledger","cash book","trial balance","journal proper"],1],
+["Depreciation is the allocation of the cost of a fixed asset over its",["useful life","purchase date","sale price","tax period"],0]]
+};
+const MINUTES = 20;
+// -----------------------------------------------------------------
+
+const $ = id => document.getElementById(id);
+let current = [], timerId, secs, student, subj, done = false;
+$("subject").innerHTML = Object.keys(BANK).map(s => `<option>${s}</option>`).join("");
+
+function startTest(){
+  student = $("name").value.trim();
+  if(!student){ alert("Please enter your name."); return; }
+  subj = $("subject").value;
+  current = BANK[subj].slice(0,20);
+  done = false;
+  $("start").classList.add("hide");
+  $("test").classList.remove("hide");
+  $("who").textContent = student + " · " + subj;
+  $("qs").innerHTML = current.map((q,i) =>
+    `<div class="card"><b>${i+1}. ${q[0]}</b>` +
+    q[1].map((o,j) => `<label class="opt"><input type="radio" name="q${i}" value="${j}">${"ABCD"[j]}. ${o}</label>`).join("") +
+    `</div>`).join("");
+  secs = MINUTES * 60;
+  tick();
+  timerId = setInterval(tick, 1000);
+}
+
+function tick(){
+  const m = String(Math.floor(secs/60)).padStart(2,"0"), s = String(secs%60).padStart(2,"0");
+  $("timer").textContent = "⏱ " + m + ":" + s;
+  if(secs-- <= 0) finish(true);
+}
+
+function finish(auto){
+  if(done) return;
+  if(!auto && !confirm("Submit your test now?")) return;
+  done = true;
+  clearInterval(timerId);
+  let score = 0, review = "";
+  current.forEach((q,i) => {
+    const sel = document.querySelector(`input[name="q${i}"]:checked`);
+    const pick = sel ? +sel.value : -1;
+    const right = pick === q[2];
+    if(right) score++;
+    review += `<div class="opt ${right?"ok":"bad"}"><b>${i+1}. ${q[0]}</b><br>` +
+      `Your answer: ${pick<0?"No answer":q[1][pick]}` +
+      (right ? " ✓" : `<br>Correct answer: ${q[1][q[2]]}`) + `</div>`;
+  });
+  const pct = Math.round(score / current.length * 100);
+  $("test").classList.add("hide");
+  $("result").classList.remove("hide");
+  $("result").innerHTML = `<h1>${student}, you scored ${score}/${current.length} (${pct}%)</h1>
+    <p class="muted">${subj}</p>${review}
+    <button onclick="location.reload()">Take another test</button>`;
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
